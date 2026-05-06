@@ -3,21 +3,25 @@ const router = express.Router();
 const { 
   createBuild, 
   getBuilds, 
+  getCommunityBuilds, // Import it here
   getBuildById, 
   updateBuild, 
   deleteBuild 
 } = require('./buildController');
 const { protect } = require('../../middleware/authMiddleware');
 
-// Routes for /api/builds/
+// 1. MUST GO FIRST: The Community Route
+router.get('/community', protect, getCommunityBuilds);
+
+// 2. Base Routes (Dashboard Ledger & Create)
 router.route('/')
-  .get(getBuilds)
+  .get(protect, getBuilds)
   .post(protect, createBuild);
 
-// Routes for /api/builds/:id
+// 3. MUST GO LAST: Dynamic ID Routes
 router.route('/:id')
-  .get(getBuildById)            // Anyone can view a specific build
-  .put(protect, updateBuild)    // Only the author can edit it
-  .delete(protect, deleteBuild);// Only the author can delete it
+  .get(getBuildById)            
+  .put(protect, updateBuild)    
+  .delete(protect, deleteBuild);
 
 module.exports = router;

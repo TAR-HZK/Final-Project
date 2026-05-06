@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { createBuild } from './buildSlice';
 import axios from 'axios';
 
@@ -41,106 +41,172 @@ function BuildEditor() {
   };
 
   return (
-    // Outer container: Replaced dark background with a deep, muted forest/autumn brown
-    <div className="min-h-screen bg-[#2C221B] py-12 font-serif transition-colors duration-500">
-      <div className="max-w-5xl mx-auto px-6">
+    <div className="min-h-screen relative font-serif text-[#2C221B] overflow-x-hidden">
+      
+      {/* IMMERSIVE MAP BACKGROUND */}
+      <div className="fixed inset-0 z-0 bg-[#1A120E]">
+        <img 
+          src="/map.png" 
+          alt="World Map" 
+          className="w-full h-full object-cover opacity-20 mix-blend-luminosity"
+          onError={(e) => e.target.style.display = 'none'}
+        />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,#1A120E_100%)] pointer-events-none"></div>
+      </div>
+
+      {/* THE WIDE PILLAR */}
+      <div 
+        className="relative z-10 py-12 px-6 sm:px-12 md:px-16 w-full min-h-screen bg-[#1A120E]/85 backdrop-blur-sm border-x-2 border-[#8B5A2B]/30 shadow-[0_0_60px_rgba(0,0,0,0.8)] flex flex-col"
+        style={{ maxWidth: '1200px', margin: '0 auto' }} 
+      >
+        {/* UNIVERSAL BACK BUTTON */}
+        <button 
+          onClick={() => navigate(-1)} 
+          className="absolute top-6 left-6 md:left-12 px-5 py-2.5 bg-gradient-to-b from-[#3A2618] to-[#1A120E] border border-[#8B5A2B] text-[#C5A059] font-black tracking-widest uppercase hover:from-[#5C4033] hover:to-[#2C1A10] hover:text-[#E8DCC4] transition-all shadow-[inset_0_0_10px_rgba(0,0,0,0.8),_4px_4px_0px_rgba(0,0,0,0.5)] active:translate-y-[2px] active:shadow-[inset_0_0_10px_rgba(0,0,0,0.8),_0px_0px_0px_rgba(0,0,0,0)] text-xs sm:text-sm"
+        >
+          <span>←</span> Back
+        </button>
         
-        <div className="text-center mb-10">
-          <h1 className="text-5xl font-bold text-[#E8DCC4] tracking-wider" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}>
+        {/* HEADER */}
+        <header className="text-center mb-10">
+          <h1 className="text-4xl md:text-5xl font-extrabold text-[#E8DCC4] tracking-wider drop-shadow-md mb-3">
             The Forgemaster's Ledger
           </h1>
-          <p className="text-[#A89F91] mt-3 italic text-lg">Inscribe your martial disciplines and seek the Oracle's wisdom.</p>
-        </div>
+          <p className="text-[#A89F91] italic text-lg">
+            Inscribe your martial disciplines and seek the Oracle's wisdom.
+          </p>
+          <div className="h-[2px] w-full max-w-2xl mx-auto bg-gradient-to-r from-transparent via-[#8B5A2B]/80 to-transparent mt-6"></div>
+        </header>
 
+        {/* 2-COLUMN GRID */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
           
-          {/* LEFT COLUMN: The Parchment Form */}
-          <div className="bg-[#F4EBD0] p-8 relative shadow-[8px_8px_0px_0px_rgba(26,18,14,1)] border-4 border-double border-[#5C4033]">
-            {/* Decorative Corner Pins */}
-            <div className="absolute top-2 left-2 w-3 h-3 bg-[#3A2618] rounded-full border border-[#1A120E]"></div>
-            <div className="absolute top-2 right-2 w-3 h-3 bg-[#3A2618] rounded-full border border-[#1A120E]"></div>
-            <div className="absolute bottom-2 left-2 w-3 h-3 bg-[#3A2618] rounded-full border border-[#1A120E]"></div>
-            <div className="absolute bottom-2 right-2 w-3 h-3 bg-[#3A2618] rounded-full border border-[#1A120E]"></div>
+          {/* --- LEFT COLUMN: THE LEDGER FORM --- */}
+          <form onSubmit={onSubmit} className="relative border-2 border-[#8B5A2B] shadow-[8px_8px_0px_rgba(0,0,0,0.8)] bg-[#F4EBD0] p-8 sm:p-10 flex flex-col h-full">
+            
+            {/* Parchment Texture */}
+            <img 
+              src="/parchment.jpg" 
+              alt="" 
+              className="absolute inset-0 w-full h-full object-cover opacity-80 mix-blend-multiply pointer-events-none" 
+              onError={(e) => e.target.style.display = 'none'}
+            />
+            <div className="absolute inset-0 bg-[#F4EBD0]/40 pointer-events-none"></div>
 
-            <form onSubmit={onSubmit} className="space-y-5 mt-2">
-              <div>
-                <label className="block text-lg font-bold text-[#3A2618]">Tale or Title</label>
-                <input type="text" name="title" value={title} onChange={onChange} required 
-                  className="w-full px-4 py-2 mt-1 text-[#2C221B] bg-[#E8DCC4] border-2 border-[#8B5A2B] focus:outline-none focus:border-[#5C4033] focus:ring-0 placeholder-[#A89F91]" 
-                  placeholder="e.g. The Ranger of the North" />
-              </div>
+            <div className="relative z-10 flex flex-col h-full">
               
-              <div>
-                <label className="block text-lg font-bold text-[#3A2618]">Chronicle (Description)</label>
-                <textarea name="description" value={description} onChange={onChange} rows="2"
-                  className="w-full px-4 py-2 mt-1 text-[#2C221B] bg-[#E8DCC4] border-2 border-[#8B5A2B] focus:outline-none focus:border-[#5C4033] focus:ring-0 placeholder-[#A89F91]" 
-                  placeholder="Record the deeds of this build..."></textarea>
+              <div className="flex flex-col gap-6 flex-grow">
+                {/* Title Input */}
+                <div>
+                  <label className="block text-sm font-black text-[#1A120E] uppercase tracking-widest mb-1">Tale or Title</label>
+                  <input
+                    type="text" name="title" value={title} onChange={onChange} required
+                    placeholder="e.g. The Ranger of the North"
+                    className="w-full bg-transparent border-b-2 border-[#3A2618] py-2 text-[#1A120E] text-2xl font-black focus:outline-none focus:border-[#000] placeholder-[#5C4033]/50 transition-colors"
+                  />
+                </div>
+                
+                {/* Description Input */}
+                <div>
+                  <label className="block text-sm font-black text-[#1A120E] uppercase tracking-widest mb-1">Chronicle (Description)</label>
+                  <textarea
+                    name="description" value={description} onChange={onChange} rows="3" required
+                    placeholder="Record the deeds of this build..."
+                    className="w-full bg-transparent border-b-2 border-[#3A2618] py-2 text-[#1A120E] text-lg font-bold focus:outline-none focus:border-[#000] placeholder-[#5C4033]/50 transition-colors resize-none"
+                  ></textarea>
+                </div>
+
+                {/* Stats Grid */}
+                <div className="grid grid-cols-2 gap-x-8 gap-y-6 mt-4">
+                  <div className="flex flex-col border-b-2 border-[#3A2618] pb-2">
+                    <label className="text-xs font-black text-[#1A120E] uppercase tracking-widest">Vitality (Vigor)</label>
+                    <input type="number" name="vigor" value={vigor} onChange={onChange} className="bg-transparent text-3xl font-black text-[#8B0000] focus:outline-none text-center w-full mt-1" />
+                  </div>
+                  <div className="flex flex-col border-b-2 border-[#3A2618] pb-2">
+                    <label className="text-xs font-black text-[#1A120E] uppercase tracking-widest">Stamina (End)</label>
+                    <input type="number" name="endurance" value={endurance} onChange={onChange} className="bg-transparent text-3xl font-black text-[#1A120E] focus:outline-none text-center w-full mt-1" />
+                  </div>
+                  <div className="flex flex-col border-b-2 border-[#3A2618] pb-2">
+                    <label className="text-xs font-black text-[#1A120E] uppercase tracking-widest">Might (Str)</label>
+                    <input type="number" name="strength" value={strength} onChange={onChange} className="bg-transparent text-3xl font-black text-[#1A120E] focus:outline-none text-center w-full mt-1" />
+                  </div>
+                  <div className="flex flex-col border-b-2 border-[#3A2618] pb-2">
+                    <label className="text-xs font-black text-[#1A120E] uppercase tracking-widest">Finesse (Dex)</label>
+                    <input type="number" name="dexterity" value={dexterity} onChange={onChange} className="bg-transparent text-3xl font-black text-[#1A120E] focus:outline-none text-center w-full mt-1" />
+                  </div>
+                </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-6 pt-2 border-t border-[#8B5A2B] border-dashed">
-                <div>
-                  <label className="block text-md font-bold text-[#5C4033]">Vitality (Vigor)</label>
-                  <input type="number" name="vigor" value={vigor} onChange={onChange} className="w-full px-3 py-2 mt-1 text-center font-bold text-[#2C221B] bg-[#E8DCC4] border-2 border-[#8B5A2B]" />
-                </div>
-                <div>
-                  <label className="block text-md font-bold text-[#5C4033]">Stamina (End)</label>
-                  <input type="number" name="endurance" value={endurance} onChange={onChange} className="w-full px-3 py-2 mt-1 text-center font-bold text-[#2C221B] bg-[#E8DCC4] border-2 border-[#8B5A2B]" />
-                </div>
-                <div>
-                  <label className="block text-md font-bold text-[#5C4033]">Might (Str)</label>
-                  <input type="number" name="strength" value={strength} onChange={onChange} className="w-full px-3 py-2 mt-1 text-center font-bold text-[#2C221B] bg-[#E8DCC4] border-2 border-[#8B5A2B]" />
-                </div>
-                <div>
-                  <label className="block text-md font-bold text-[#5C4033]">Finesse (Dex)</label>
-                  <input type="number" name="dexterity" value={dexterity} onChange={onChange} className="w-full px-3 py-2 mt-1 text-center font-bold text-[#2C221B] bg-[#E8DCC4] border-2 border-[#8B5A2B]" />
-                </div>
-              </div>
-
-              <button type="submit" className="w-full py-3 mt-6 text-lg font-bold text-[#F4EBD0] bg-[#5C4033] border-2 border-[#3A2618] hover:bg-[#8B5A2B] transition-colors shadow-md">
+              {/* High-Contrast "Wax Seal" Submit Button */}
+              <button
+                type="submit"
+                className="w-full mt-12 py-5 bg-gradient-to-b from-[#7A1515] to-[#4A0B0B] border-2 border-[#1A120E] text-[#E8DCC4] text-xl font-black tracking-widest uppercase hover:from-[#931D1D] hover:to-[#5E0F0F] transition-all shadow-[6px_6px_0px_#1A120E] hover:shadow-[8px_8px_0px_#1A120E] hover:-translate-y-1 active:translate-y-[6px] active:shadow-none"
+              >
                 Seal into the Ledger
               </button>
-            </form>
-          </div>
 
-          {/* RIGHT COLUMN: The AI Oracle (Darker Leather/Book Cover Theme) */}
-          <div className="bg-[#3A2618] p-8 border-4 border-[#1A120E] shadow-[8px_8px_0px_0px_rgba(26,18,14,1)] flex flex-col relative">
-            {/* Gold trim accent */}
-            <div className="absolute inset-2 border border-[#C5A059] opacity-30 pointer-events-none"></div>
+            </div>
+          </form>
 
-            <h2 className="text-3xl font-bold text-[#C5A059] mb-6 text-center" style={{ textShadow: '1px 1px 2px #000' }}>
-              ✦ The Oracle's Sight ✦
-            </h2>
+          {/* --- RIGHT COLUMN: THE ORACLE'S SIGHT --- */}
+          <div className="relative border-2 border-[#5C4033] shadow-[8px_8px_0px_rgba(0,0,0,0.8)] bg-[#130C0A] p-8 sm:p-10 flex flex-col h-full">
             
-            <div className="mb-6 relative z-10">
-              <label className="block text-sm font-bold text-[#D4C4A8]">Favored Armament (Optional)</label>
-              <input type="text" name="weaponPreference" value={weaponPreference} onChange={onChange} 
-                className="w-full px-3 py-2 mt-1 text-[#F4EBD0] bg-[#2C221B] border border-[#5C4033] focus:outline-none focus:border-[#C5A059] placeholder-[#5C4033]" 
-                placeholder="e.g. Elven Bow, Dwarven Axe" />
+            <div className="absolute inset-2 border border-[#C5A059] opacity-20 pointer-events-none"></div>
+
+            <div className="text-center mb-8 relative z-10">
+              <h2 className="text-3xl font-bold text-[#C5A059] tracking-widest drop-shadow-[0_0_15px_rgba(197,160,89,0.4)]">
+                ✦ The Oracle's Sight ✦
+              </h2>
             </div>
 
-            <button 
-              type="button" 
-              onClick={askAdvisor}
-              disabled={isAiLoading}
-              className="w-full py-2 mb-6 text-md font-bold text-[#1A120E] bg-[#C5A059] border-2 border-[#8A6A32] hover:bg-[#D4B473] disabled:bg-[#5C4033] disabled:text-[#A89F91] transition-colors relative z-10"
-            >
-              {isAiLoading ? 'Scrying the flames...' : 'Seek Counsel for these Stats'}
-            </button>
+            <div className="flex flex-col flex-grow relative z-10 gap-8">
+              
+              <div>
+                <label className="block text-xs font-black text-[#E8DCC4] uppercase tracking-widest mb-2">Favored Armament (Optional)</label>
+                <input
+                  type="text" name="weaponPreference" value={weaponPreference} onChange={onChange}
+                  placeholder="e.g. Elven Bow, Dwarven Axe"
+                  className="w-full bg-transparent border-b-2 border-[#C5A059] py-3 px-4 text-[#E8DCC4] text-xl font-bold focus:outline-none focus:border-[#F4EBD0] placeholder-[#A89F91]/50 transition-colors"
+                />
+              </div>
 
-            <div className="flex-1 bg-[#1A120E] p-5 border border-[#5C4033] overflow-y-auto min-h-[180px] relative z-10 shadow-inner">
-              {isAiLoading ? (
-                 <p className="text-[#C5A059] italic animate-pulse text-center mt-4">The Oracle is consulting the ancient texts...</p>
-              ) : aiAdvice ? (
-                 <p className="text-[#D4C4A8] leading-relaxed first-letter:text-4xl first-letter:font-bold first-letter:text-[#C5A059] first-letter:mr-1 first-letter:float-left">
-                   {aiAdvice}
-                 </p>
-              ) : (
-                 <p className="text-[#5C4033] italic text-center mt-4">The parchment remains blank. Adjust your stats and seek counsel.</p>
-              )}
+              {/* Gold Leather Button */}
+              <button
+                type="button"
+                onClick={askAdvisor}
+                disabled={isAiLoading}
+                className="w-full py-4 bg-[#A07848] border-2 border-[#1A120E] text-[#1A120E] text-lg font-black tracking-widest uppercase hover:bg-[#C5A059] disabled:opacity-50 transition-all shadow-[4px_4px_0px_#000] hover:shadow-[6px_6px_0px_#000] hover:-translate-y-[2px] active:translate-y-[4px] active:shadow-none"
+              >
+                {isAiLoading ? 'Scrying...' : 'Seek Counsel for these Stats'}
+              </button>
+
+              {/* Oracle Output Box */}
+              <div className="flex-grow border-2 border-[#5C4033]/70 bg-[#0A0604] p-6 flex flex-col justify-start overflow-y-auto shadow-inner min-h-[250px]">
+                {isAiLoading ? (
+                   <p className="text-[#C5A059] font-bold text-lg animate-pulse text-center mt-8">The Oracle is consulting the ancient texts...</p>
+                ) : aiAdvice ? (
+                   <p className="text-[#E8DCC4] font-medium text-lg leading-relaxed first-letter:text-5xl first-letter:font-black first-letter:text-[#C5A059] first-letter:mr-2 first-letter:float-left first-letter:mt-[-4px]">
+                     {aiAdvice}
+                   </p>
+                ) : (
+                   <p className="text-[#8B5A2B] font-bold text-lg text-center mt-8">
+                     The parchment remains blank. Adjust your stats and seek counsel.
+                   </p>
+                )}
+              </div>
+
             </div>
           </div>
 
         </div>
+
+        {/* RETURN TO HUB */}
+        <div className="text-center mt-12">
+           <Link to="/dashboard" className="text-[#A89F91] hover:text-[#C5A059] font-black uppercase tracking-widest text-sm transition-colors border-b-2 border-transparent hover:border-[#C5A059] pb-1">
+             ← Return to Hub
+           </Link>
+        </div>
+
       </div>
     </div>
   );

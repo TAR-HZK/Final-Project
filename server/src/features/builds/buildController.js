@@ -2,7 +2,7 @@ const Build = require('./buildModel');
 
 // @desc    Create a new build
 // @route   POST /api/builds
-// @access  Private (Requires Token)
+// @access  Private
 const createBuild = async (req, res, next) => {
   try {
     const { title, description, stats, equipment, isPublic } = req.body;
@@ -12,14 +12,13 @@ const createBuild = async (req, res, next) => {
       throw new Error('Please provide a title for your build');
     }
 
-    // Create the build, attaching the user ID from our protect middleware
     const build = await Build.create({
       authorId: req.user.id,
       title,
       description,
       stats,
       equipment,
-      isPublic
+      isPublic: isPublic !== undefined ? isPublic : false // Default to false so it doesn't auto-publish
     });
 
     res.status(201).json(build);
@@ -28,15 +27,28 @@ const createBuild = async (req, res, next) => {
   }
 };
 
-// @desc    Get all public builds (for the community feed later)
+// @desc    Get logged-in user's personal builds (Dashboard Ledger)
 // @route   GET /api/builds
-// @access  Public
+// @access  Private
 const getBuilds = async (req, res, next) => {
+  try {
+    // ONLY fetch builds that belong to the logged-in user
+    const builds = await Build.find({ authorId: req.user.id }).sort({ createdAt: -1 });
+    res.status(200).json(builds);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Get all public builds (The Tavern Community Feed)
+// @route   GET /api/builds/community
+// @access  Private or Public
+const getCommunityBuilds = async (req, res, next) => {
   try {
     // Find all public builds and populate the author's username
     const builds = await Build.find({ isPublic: true })
       .populate('authorId', 'username')
-      .sort({ createdAt: -1 }); // Newest first
+      .sort({ createdAt: -1 }); 
 
     res.status(200).json(builds);
   } catch (error) {
@@ -62,7 +74,7 @@ const getBuildById = async (req, res, next) => {
   }
 };
 
-// @desc    Update a build
+// @desc    Update a build (e.g., Publishing to Tavern)
 // @route   PUT /api/builds/:id
 // @access  Private
 const updateBuild = async (req, res, next) => {
@@ -74,17 +86,16 @@ const updateBuild = async (req, res, next) => {
       throw new Error('Build not found');
     }
 
-    // Security Check: Make sure the logged-in user actually owns this build
     if (build.authorId.toString() !== req.user.id && req.user.role !== 'admin') {
       res.status(401);
       throw new Error('Not authorized to update this build');
     }
 
-    // Update the build
     const updatedBuild = await Build.findByIdAndUpdate(
       req.params.id,
       req.body,
-      { new: true, runValidators: true }
+      // THE FIX for the Mongoose warning:
+      { returnDocument: 'after', runValidators: true } 
     );
 
     res.status(200).json(updatedBuild);
@@ -105,7 +116,6 @@ const deleteBuild = async (req, res, next) => {
       throw new Error('Build not found');
     }
 
-    // Security Check: Make sure the logged-in user actually owns this build
     if (build.authorId.toString() !== req.user.id && req.user.role !== 'admin') {
       res.status(401);
       throw new Error('Not authorized to delete this build');
@@ -119,10 +129,10 @@ const deleteBuild = async (req, res, next) => {
   }
 };
 
-
 module.exports = {
   createBuild,
   getBuilds,
+  getCommunityBuilds, // Export the new function!
   getBuildById,
   updateBuild,
   deleteBuild
